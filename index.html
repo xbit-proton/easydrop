@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VISUAL DROP // TERMINAL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Production Decoders -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        :root {
+            --bg: #000000; /* Pure AMOLED Black */
+            --accent: #007aff;
+            --surface-glass: rgba(255, 255, 255, 0.02); /* Clinical dark glass */
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #666666;
+            --font: 'Space Grotesk', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font);
+            letter-spacing: -0.2px;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 24px 16px;
+        }
+
+        header {
+            width: 100%;
+            max-width: 460px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 4px;
+            margin-bottom: 24px;
+        }
+
+        h1 {
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .dev-badge {
+            font-size: 8px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border: 1px solid var(--border-glass);
+            background: rgba(255, 255, 255, 0.03);
+            padding: 4px 10px;
+            border-radius: 99px; /* Non-edgy pill */
+            color: #888888;
+        }
+
+        /* Central Pill Switch */
+        .toggle-container {
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid var(--border-glass);
+            padding: 5px;
+            border-radius: 99px; /* Smooth non-edgy pill */
+            display: flex;
+            width: 100%;
+            max-width: 340px;
+            margin-bottom: 32px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+
+        .toggle-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            padding: 12px 0;
+            border-radius: 99px; /* Pure rounded pill mapping */
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .toggle-btn.active {
+            background: #ffffff;
+            color: #000000;
+            font-weight: 700;
+        }
+
+        /* Pure Glassmorphism Containers */
+        .view-panel {
+            width: 100%;
+            max-width: 460px;
+            background: var(--surface-glass);
+            border: 1px solid var(--border-glass);
+            border-radius: 28px; /* Smooth rounded radius */
+            padding: 28px;
+            display: none;
+            backdrop-filter: blur(24px) saturate(120%);
+            -webkit-backdrop-filter: blur(24px) saturate(120%);
+            animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .view-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        h2 {
+            font-size: 10px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+            color: #888888;
+            text-transform: uppercase;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            padding: 16px;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 13px;
+            resize: none;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.9);
+        }
+
+        /* Custom File Target Pill */
+        .file-upload-wrapper {
+            border: 1px dashed var(--border-glass);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.005);
+            margin-bottom: 20px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.2s;
+        }
+
+        .file-upload-wrapper:hover {
+            background: rgba(255, 255, 255, 0.02);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .file-upload-wrapper input[type="file"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Non-edgy Pill Buttons */
+        .action-btn {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 99px; /* Completely rounded pill layout */
+            padding: 16px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .action-btn:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
+        .action-btn.destructive {
+            background: rgba(255, 59, 48, 0.1);
+            border: 1px solid rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+        }
+
+        /* Secondary Action Buttons for Output */
+        .utility-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border-glass);
+            color: #ffffff;
+            border-radius: 99px;
+            padding: 10px 20px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            display: none;
+            margin-top: 14px;
+            width: max-content;
+            align-self: flex-end;
+            transition: all 0.2s ease;
+        }
+
+        .utility-btn:active {
+            transform: scale(0.96);
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Optical View Output Frame */
+        .qr-render-zone {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #ffffff;
+            border-radius: 20px;
+            margin-top: 24px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 32px;
+        }
+
+        .qr-render-zone img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            mix-blend-mode: darken;
+        }
+
+        /* Camera Layer Shell */
+        .camera-viewport {
+            width: 100%;
+            aspect-ratio: 1;
+            background: #000000;
+            border: 1px solid var(--border-glass);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        #reader {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        #reader video {
+            object-fit: cover !important;
+        }
+
+        /* Status and Progress bars */
+        .progress-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 99px;
+            transition: width 0.1s ease;
+        }
+
+        /* Reassembled Materialization Panel */
+        .materialization-box {
+            width: 100%;
+            border: 1px solid var(--border-glass);
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.5);
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            overflow: hidden;
+        }
+
+        #rxTextResult {
+            width: 100%;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre-wrap;
+            color: #888888;
+            text-align: left;
+            line-height: 1.5;
+            word-break: break-all;
+        }
+
+        #rxTextResult.success {
+            color: #ffffff;
+        }
+
+        #rxImageResult {
+            max-width: 100%;
+            max-height: 280px;
+            border-radius: 12px;
+            display: none;
+            object-fit: contain;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>VISUAL DROP</h1>
+        </div>
+        <div class="dev-badge">AIR-GAP.V3</div>
+    </header>
+
+    <!-- Smooth Pill Switch -->
+    <div class="toggle-container">
+        <button class="toggle-btn active" id="btnModeTx" onclick="switchMode('TX')">Transmitter</button>
+        <button class="toggle-btn" id="btnModeRx" onclick="switchMode('RX')">Receiver</button>
+    </div>
+
+    <!-- TRANSMITTER MODULE -->
+    <div class="view-panel active" id="panelTx">
+        <h2>01 // Data Matrix Source</h2>
+        <textarea id="txTextInput" placeholder="Paste source script or keys array..." oninput="clearFileInput()"></textarea>
+        
+        <h2>02 // Media Allocation</h2>
+        <div class="file-upload-wrapper">
+            <span id="uploadStatusText">Select Image Asset</span>
+            <input type="file" id="fileInput" accept="image/*" onchange="processFileToMemory()">
+        </div>
+
+        <button class="action-btn" id="txActionBtn" onclick="toggleTxLoop()">Initialize Optical Tunnel</button>
+        
+        <div class="qr-render-zone" id="qrOutputWrapper"></div>
+        <div class="progress-meta" id="txMeta" style="margin-top: 16px; display: none;">
+            <span style="color: var(--accent);">● BROADCASTING</span>
+            <span id="txFrameIndex">FRAME: 0/0</span>
+        </div>
+    </div>
+
+    <!-- RECEIVER MODULE -->
+    <div class="view-panel" id="panelRx">
+        <div class="progress-meta">
+            <span id="rxStatusLabel">LOGIC // STANDBY</span>
+            <span id="rxCountLabel">0/0 PIECES</span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-fill" id="rxProgressBar"></div>
+        </div>
+
+        <div class="camera-viewport">
+            <div id="reader"></div>
+        </div>
+
+        <button class="action-btn" id="rxActionBtn" onclick="toggleRxCamera()" style="margin-bottom: 24px;">Activate Camera Capture</button>
+        
+        <h2>Materialization Engine Output</h2>
+        <div class="materialization-box">
+            <div id="rxTextResult">Awaiting optical pipeline metrics...</div>
+            <img id="rxImageResult" alt="Synthesized light payload asset" />
+            
+            <!-- Contextual Operational Triggers -->
+            <button class="utility-btn" id="btnCopyData" onclick="copyReassembledText()">Copy Script Payload</button>
+            <button class="utility-btn" id="btnDownloadData" onclick="downloadReassembledImage()">Download Media Asset</button>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'TX';
+        let activePayloadString = "";
+        let finalAssemblyCache = ""; // Secure global cache pointer for reassembly actions
+        
+        // TX States
+        let txLoopInterval = null;
+        let isTransmitting = false;
+        const sessionID = "VD"; 
+        
+        // RX States
+        let html5QrcodeScanner = null;
+        let isScanning = false;
+        let incomingChunksBuffer = {};
+        let expectedTotalChunks = 0;
+
+        function switchMode(mode) {
+            if(mode === currentMode) return;
+            killTxLoop();
+            killRxCamera();
+
+            currentMode = mode;
+            document.getElementById('btnModeTx').classList.toggle('active', mode === 'TX');
+            document.getElementById('btnModeRx').classList.toggle('active', mode === 'RX');
+            document.getElementById('panelTx').classList.toggle('active', mode === 'TX');
+            document.getElementById('panelRx').classList.toggle('active', mode === 'RX');
+        }
+
+        /* ================= DETECTOR PROCESSING ================= */
+        function clearFileInput() {
+            document.getElementById('fileInput').value = "";
+            document.getElementById('uploadStatusText').textContent = "Select Image Asset";
+            document.getElementById('uploadStatusText').style.color = "var(--text-secondary)";
+            activePayloadString = "";
+        }
+
+        function processFileToMemory() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) return;
+
+            document.getElementById('txTextInput').value = ""; 
+            document.getElementById('uploadStatusText').textContent = `${file.name.substring(0, 20)}...`;
+            document.getElementById('uploadStatusText').style.color = "#ffffff";
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                activePayloadString = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function killTxLoop() {
+            clearInterval(txLoopInterval);
+            isTransmitting = false;
+            document.getElementById('txActionBtn').textContent = "Initialize Optical Tunnel";
+            document.getElementById('txActionBtn').className = "action-btn";
+            document.getElementById('qrOutputWrapper').style.display = "none";
+            document.getElementById('txMeta').style.display = "none";
+        }
+
+        function toggleTxLoop() {
+            if(isTransmitting) {
+                killTxLoop();
+                return;
+            }
+
+            let finalDataStream = activePayloadString ? activePayloadString : document.getElementById('txTextInput').value;
+            if(!finalDataStream.trim()) return;
+
+            const segmentSize = activePayloadString ? 120 : 70;
+            const packetList = [];
+            let chunkIdx = 0;
+
+            for(let i = 0; i < finalDataStream.length; i += segmentSize) {
+                packetList.push({
+                    sid: sessionID,
+                    tot: Math.ceil(finalDataStream.length / segmentSize),
+                    idx: chunkIdx,
+                    body: finalDataStream.substring(i, i + segmentSize)
+                });
+                chunkIdx++;
+            }
+
+            isTransmitting = true;
+            document.getElementById('txActionBtn').textContent = "Sever Data Connection";
+            document.getElementById('txActionBtn').className = "action-btn destructive";
+            document.getElementById('qrOutputWrapper').style.display = "flex";
+            document.getElementById('txMeta').style.display = "flex";
+
+            let currentFrame = 0;
+            
+            txLoopInterval = setInterval(() => {
+                const targetFrame = packetList[currentFrame % packetList.length];
+                const protocolString = `${targetFrame.sid}|${targetFrame.tot}|${targetFrame.idx}|${targetFrame.body}`;
+                
+                const qr = qrcode(0, 'L');
+                qr.addData(protocolString);
+                qr.make();
+                
+                document.getElementById('qrOutputWrapper').innerHTML = qr.createImgTag(5, 0);
+                document.getElementById('txFrameIndex').textContent = `FRAME: ${targetFrame.idx + 1}/${targetFrame.tot}`;
+                
+                currentFrame++;
+            }, 130); 
+        }
+
+        /* ================= INTEGRATED SCANNING RECONSTRUCTION ================= */
+        function killRxCamera() {
+            if(html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner = null;
+                    resetRxUI();
+                }).catch(() => {
+                    html5QrcodeScanner = null;
+                    resetRxUI();
+                });
+            } else {
+                resetRxUI();
+            }
+        }
+
+        function resetRxUI() {
+            isScanning = false;
+            document.getElementById('rxActionBtn').textContent = "Activate Camera Capture";
+            document.getElementById('rxActionBtn').className = "action-btn";
+            document.getElementById('rxStatusLabel').textContent = "LOGIC // STANDBY";
+        }
+
+        function toggleRxCamera() {
+            if(isScanning) {
+                killRxCamera();
+                return;
+            }
+
+            incomingChunksBuffer = {};
+            expectedTotalChunks = 0;
+            finalAssemblyCache = "";
+            document.getElementById('rxProgressBar').style.width = "0%";
+            document.getElementById('rxCountLabel').textContent = "0/0 PIECES";
+            
+            document.getElementById('rxImageResult').style.display = "none";
+            document.getElementById('btnCopyData').style.display = "none";
+            document.getElementById('btnDownloadData').style.display = "none";
+            document.getElementById('rxTextResult').style.display = "block";
+            document.getElementById('rxTextResult').textContent = "Awaiting optical pipeline metrics...";
+
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            isScanning = true;
+            document.getElementById('rxActionBtn').textContent = "Terminate Scanner Array";
+            document.getElementById('rxActionBtn').className = "action-btn destructive";
+            document.getElementById('rxStatusLabel').textContent = "SYNC // SCANNING";
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                {
+                    fps: 30,
+                    qrbox: (width, height) => { return { width: width * 0.8, height: height * 0.8 }; }
+                },
+                onQrCodeScanned,
+                () => {}
+            ).catch(err => {
+                alert("Camera Access Intercepted.");
+                killRxCamera();
+            });
+        }
+
+        function onQrCodeScanned(decodedText) {
+            try {
+                const tokens = decodedText.split('|');
+                if(tokens.length < 4 || tokens[0] !== sessionID) return;
+
+                const total = parseInt(tokens[1], 10);
+                const currentIdx = parseInt(tokens[2], 10);
+                const payloadContent = tokens.slice(3).join('|');
+
+                if(expectedTotalChunks === 0) expectedTotalChunks = total;
+
+                if(!incomingChunksBuffer[currentIdx]) {
+                    incomingChunksBuffer[currentIdx] = payloadContent;
+                    
+                    const gatheredSize = Object.keys(incomingChunksBuffer).length;
+                    const completionPercentage = (gatheredSize / expectedTotalChunks) * 100;
+                    
+                    document.getElementById('rxProgressBar').style.width = `${completionPercentage}%`;
+                    document.getElementById('rxCountLabel').textContent = `${gatheredSize}/${expectedTotalChunks} FRAMES`;
+                    
+                    if(gatheredSize === expectedTotalChunks) {
+                        finalizeReceivedData();
+                    }
+                }
+            } catch(e) {}
+        }
+
+        function finalizeReceivedData() {
+            html5QrcodeScanner.stop().then(() => {
+                html5QrcodeScanner = null;
+                resetRxUI();
+                
+                let structuralAssembly = "";
+                for(let i = 0; i < expectedTotalChunks; i++) {
+                    structuralAssembly += incomingChunksBuffer[i];
+                }
+
+                finalAssemblyCache = structuralAssembly; // Save to memory cache loop
+                document.getElementById('rxStatusLabel').textContent = "MATERIALIZED // SUCCESS";
+                
+                if (structuralAssembly.startsWith("data:image/")) {
+                    document.getElementById('rxTextResult').style.display = "none";
+                    const imgOut = document.getElementById('rxImageResult');
+                    imgOut.src = structuralAssembly;
+                    imgOut.style.display = "block";
+                    
+                    document.getElementById('btnDownloadData').style.display = "block";
+                } else {
+                    const txtOut = document.getElementById('rxTextResult');
+                    txtOut.textContent = structuralAssembly;
+                    txtOut.style.color = "#ffffff";
+                    
+                    document.getElementById('btnCopyData').style.display = "block";
+                    document.getElementById('btnCopyData').textContent = "Copy Script Payload";
+                }
+                
+                if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+            });
+        }
+
+        /* ================= ASSET UTILITY ACTIONS ================= */
+        function copyReassembledText() {
+            if(!finalAssemblyCache || finalAssemblyCache.startsWith("data:image/")) return;
+            
+            navigator.clipboard.writeText(finalAssemblyCache).then(() => {
+                const copyBtn = document.getElementById('btnCopyData');
+                copyBtn.textContent = "COPIED TO CLIPBOARD";
+                setTimeout(() => {
+                    copyBtn.textContent = "Copy Script Payload";
+                }, 2000);
+            }).catch(() => {
+                alert("Clipboard permissions exception.");
+            });
+        }
+
+        function downloadReassembledImage() {
+            if(!finalAssemblyCache || !finalAssemblyCache.startsWith("data:image/")) return;
+
+            const downloadLink = document.createElement("a");
+            downloadLink.href = finalAssemblyCache;
+            downloadLink.download = `visual_drop_asset_${Date.now()}.png`;
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        }
+    </script>
+</body>
+</html>
