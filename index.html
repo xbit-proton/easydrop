@@ -11,7 +11,22 @@
     <!-- Production Decoders -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
     <script src="https://unpkg.com/html5-qrcode"></script>
+<!-- Link the PWA Web Manifest Layout -->
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="Visuallogo.png">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
+<script>
+  // Register the Offline Service Worker Engine
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg => console.log('Visual Drop offline pipeline active.'))
+        .catch(err => console.error('Service worker initialization failure:', err));
+    });
+  }
+</script>
+    
     <style>
         :root {
             --bg: #000000; /* Pure AMOLED Black */
